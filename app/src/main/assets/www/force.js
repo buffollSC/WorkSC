@@ -353,7 +353,7 @@ var force = (function () {
             var authSuccess = function(creds) {
                 // Initialize ForceJS
                 init({accessToken: creds.accessToken, instanceURL: creds.instanceUrl, refreshToken: creds.refreshToken})
-                console.log("userId: " + creds.userId);
+                console.log("accessToken:" + creds.accessToken);
                 getMyId(creds);
                 if (typeof successHandler === "function") successHandler();
             };

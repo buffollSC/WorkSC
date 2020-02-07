@@ -6,7 +6,7 @@
     <link href="ratchet.css" rel="stylesheet">
     <link href="ratchet-theme.css" rel="stylesheet">
     <style>
-        body {
+        .body {
             top: env(safe-area-inset-top)
         }
         .bar-nav {
@@ -25,60 +25,191 @@
         .header-nav {
             display: flex;
             align-items: center;
-            background-color: rgb(190, 184, 184);
+            background-color: rgb(40, 156, 202);
         }
-
+        .modalWindow {
+            position: fixed;
+            top: 0
+        }
+        .photo {
+            border-radius: 50%;
+        }
+        .modalDialog {
+            position: fixed;
+            font-family: Arial, Helvetica, sans-serif;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            left: 0;
+            background: rgba(0,0,0,0.8);
+            z-index: 99999;
+            opacity:0;
+            -webkit-transition: opacity 400ms ease-in;
+            -moz-transition: opacity 400ms ease-in;
+            transition: opacity 400ms ease-in;
+            pointer-events: none;
+        }
+        .modalDialog:target {
+            opacity:1;
+            pointer-events: auto;
+        }
+        a.button24 {
+            display: inline-block;
+            color: white;
+            text-decoration: none;
+            padding: .5em 2em;
+            outline: none;
+            border-width: 2px 0;
+            border-style: solid none;
+            border-color: rgb(40, 156, 202) #000 rgb(40, 156, 202);
+            border-radius: 6px;
+            background: linear-gradient(rgb(40, 156, 202), rgb(40, 156, 202)) rgb(40, 156, 202);
+            transition: 0.2s;
+          } 
+          a.button24:hover { background: linear-gradient(rgb(40, 156, 202), rgb(40, 156, 202)) rgb(40, 156, 202);}
+          a.button24:active { background: linear-gradient(rgb(40, 156, 202), rgb(40, 156, 202)) rgb(40, 156, 202);}
+        .modalDialog > div {
+            width: 350px;
+            position: relative;
+            margin: 10% auto;
+            padding: 5px 20px 13px 20px;
+            border-radius: 10px;
+            background: #fff;
+            background: -moz-linear-gradient(#fff, #999);
+            background: -webkit-linear-gradient(#fff, #999);
+            background: -o-linear-gradient(#fff, #999);
+        }
+        .close {
+            background: #606061;
+            color: #FFFFFF;
+            line-height: 25px;
+            position: absolute;
+            right: -12px;
+            text-align: center;
+            top: -10px;
+            width: 24px;
+            text-decoration: none;
+            font-weight: bold;
+            -webkit-border-radius: 12px;
+            -moz-border-radius: 12px;
+            border-radius: 12px;
+            -moz-box-shadow: 1px 1px 3px #000;
+            -webkit-box-shadow: 1px 1px 3px #000;
+            box-shadow: 1px 1px 3px #000;
+        }
+        .close:hover { background: #00d9ff; }
     </style>
-   <script src="cordova.js">
-   </script>
+   <script src="cordova.js"></script>
    <script src="force.js"></script>
+
    <script>
+    var idUserForUpdate = '';
+    var inputNameForUpdate = '';
+    
    force.login(
         function() {
             console.log("Auth succeeded");
-            showUserInfo();
         },
         function(error) {
             console.log("Auth failed: " + error);
         }
     );
-
-   function getMyId(creds){
-   var myUserId = creds.userId;
-   showUserInfo(myUserId);
-   }
-
-    var showUserInfo = function(myUserId) {
+    function getMyId(creds){
+        var myUserId = creds.userId;
+        var myUserToken = creds.accessToken;
+        showUserInfo(myUserId,myUserToken);
+    }
+    var showUserInfo = function(myUserId,myUserToken) {
         fetchRecords(myUserId,function(data) {
             var user = data.records;
             var listItemsHtml = '';
-            listItemsHtml += ('<li class="table-view-cell"><div class="media-body">' + user[0].Name + '</div></li>');
+            var listItemsHtmlName = '';
+            idUserForUpdate = myUserId;
+            listItemsHtmlName += (user[0].Name);
+            listItemsHtml += ('<p><img class = "photo" src="https://buffollsdk-developer-edition.ap15.force.com/'+ user[0].MediumPhotoUrl +'?oauth_token=' + myUserToken +'"> </img> <a onclick = "openCamera()" href="#" class="button24">Camera</a><a onclick = "" href="#" class="button24">Save in SF</a></p>');
+            listItemsHtml += ('<li class="table-view-cell"><div class="media-body" id="FirstName"><a onclick = btnEdit(\'FirstName\') href="#openModal" id="ModalWindowClose"> Edit </a>FirstName: ' + user[0].FirstName +'</div></li>');
+            listItemsHtml += ('<li class="table-view-cell"><div class="media-body" id="LastName"><a onclick = btnEdit(\'LastName\') href="#openModal" id="ModalWindowClose"> Edit </a>LastName: ' + user[0].LastName +'</div></li>');
+            listItemsHtml += ('<li class="table-view-cell"><div class="media-body" id="UserName"><a onclick = btnEdit(\'UserName\') href="#openModal" id="ModalWindowClose"> Edit </a>UserName: ' + user[0].Username + '</div></li>');
+            listItemsHtml += ('<li class="table-view-cell"><div class="media-body" id="MobilePhone"><a onclick = btnEdit(\'MobilePhone\') href="#openModal" id="ModalWindowClose"> Edit </a>MobilePhone: ' + user[0].MobilePhone + '</div></li>');
+            listItemsHtml += ('<li class="table-view-cell"><div class="media-body" id="CommunityNickname"><a onclick = btnEdit(\'CommunityNickname\') href="#openModal" id="ModalWindowClose"> Edit </a>CommunityNickname: ' + user[0].CommunityNickname + '</div></li>');
+            document.querySelector('#userName').innerHTML = listItemsHtmlName;
             document.querySelector('#user').innerHTML = listItemsHtml;
         })
     }
-
+    function openCamera(){
+        navigator.camera.getPicture(onSuccess, onFail, { quality: 50,
+            destinationType: Camera.DestinationType.DATA_URL
+        }); 
+    }
+    function onSuccess(imageData) {
+        var image = document.getElementById('myImage');
+        image.src = "data:image/jpeg;base64," + imageData;
+    } 
+    function onFail(message) {
+        alert('Failed because: ' + message);
+    }
+    function btnEdit(inputField){
+        inputNameForUpdate = inputField;
+        var elem = document.getElementById(inputField);
+        var cells = elem.getElementsByTagName('elem');
+        var newName = cells[0].innerHTML;
+        newName = newName.replace(/ /g);
+        document.getElementById("newNameText").value = newName; 
+    }
+    function updateData() {
+        var newNameText = document.getElementById("newNameText").value;
+        force.update(
+            'User', {
+                "id": idUserForUpdate,
+                [inputNameForUpdate]: newNameText
+            },
+            function successUpdate() {
+                force.login(
+                    function() {
+                        console.log('Auth succeeded');
+                    },
+                    function(error) {
+                        console.log('Auth failed: ' + error);
+                    }
+                );
+                alert('Success edit name');
+            },
+            function errorUpdate(error) {
+                alert('error edit name' + error);
+            }
+        )
+    }
     var fetchRecords = function (myUserId,successHandler) {
-        var soql = 'SELECT Id, Name, CommunityNickname FROM User WHERE Id = \'' + myUserId + '\' LIMIT 1';
-        console.log('SOQL' + soql);
+        var soql = 'SELECT Id, Name, FirstName, LastName, Username, CommunityNickname, MobilePhone, MediumPhotoUrl FROM User WHERE Id = \'' + myUserId + '\' LIMIT 1';
         force.query(soql, successHandler, function(error) {
             alert('Failed to fetch user: ' + error);
         });
     };
-
     function logout(){
         cordova.require("com.salesforce.plugin.sfaccountmanager").logout();
     }
-
     </script>
     </head>
     <body>
         <header class="header-nav bar-nav">
-            <h1 class="title">My profile</h1>
-            <button class='btn btn-nav btn-size' onclick="logout()">Logout</button>
+            <h1 class="title">Profile: <span id="userName"></span></h1>
+            <button onclick="logout()"> Logout </button>
         </header>
+        <div id="user" class="table-view ">
+            <!-- Placeholder to add informations -->
+        </div> 
+        <!-- <form  action = "server.cgi"  method = "post"  enctype = "multipart / form-data" > 
+        <input  type = "file"  name = "image"  accept = "image / *"  capture = "user" > 
+        <input  type = "submit"  value = "Загрузить" > 
+      </form > -->
 
-        <ul id="user" class="table-view content">
-            <!-- Placeholder to add contacts list -->
-        </ul>
+        <div id="openModal" class="modalDialog">
+            <div>
+                <a href="#close" title="Close" class="close">X</a>
+                <h2>Edit Box</h2>
+                <input type="text" id="newNameText"/>
+                <a href="#ModalWindowClose" onclick="updateData()">Update</a>
+            </div>
+        </div>
     </body>
 </html>
