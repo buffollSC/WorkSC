@@ -5,7 +5,7 @@
 5    android:versionName="8.0.0" >
 6
 7    <uses-sdk
-8        android:minSdkVersion="23"
+8        android:minSdkVersion="22"
 8-->/home/roman/MobileSDK/contactsApp/platforms/android/SmartStore/AndroidManifest.xml
 9        android:targetSdkVersion="29" />
 9-->/home/roman/MobileSDK/contactsApp/platforms/android/SmartStore/AndroidManifest.xml

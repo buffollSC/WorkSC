@@ -25,7 +25,8 @@
         .header-nav {
             display: flex;
             align-items: center;
-            background-color: rgb(40, 156, 202);
+            color: white;
+            background-color: rgb(0, 217, 255);
         }
         .modalWindow {
             position: fixed;
@@ -33,6 +34,8 @@
         }
         .photo {
             border-radius: 50%;
+            width:140px;
+            height:140px;
         }
         .modalDialog {
             position: fixed;
@@ -44,9 +47,9 @@
             background: rgba(0,0,0,0.8);
             z-index: 99999;
             opacity:0;
-            -webkit-transition: opacity 400ms ease-in;
-            -moz-transition: opacity 400ms ease-in;
-            transition: opacity 400ms ease-in;
+            -webkit-transition: opacity 390ms ease-in;
+            -moz-transition: opacity 390ms ease-in;
+            transition: opacity 390ms ease-in;
             pointer-events: none;
         }
         .modalDialog:target {
@@ -61,13 +64,28 @@
             outline: none;
             border-width: 2px 0;
             border-style: solid none;
+            border-color: rgb(0, 217, 255) #000 rgb(0, 217, 255);
+            border-radius: 6px;
+            background: linear-gradient(rgb(0, 217, 255), rgb(0, 217, 255)) rgb(0, 217, 255);
+            transition: 0.2s;
+          } 
+          a.button24:hover { background: linear-gradient(rgb(0, 217, 255), rgb(0, 217, 255)) rgb(0, 217, 255);}
+          a.button24:active { background: linear-gradient(rgb(0, 217, 255), rgb(0, 217, 255)) rgb(0, 217, 255);}
+          a.button25 {
+            display: inline-block;
+            color:white;
+            text-decoration: none;
+            padding: .5em 2em;
+            outline: none;
+            border-width: 2px 0;
+            border-style: solid none;
             border-color: rgb(40, 156, 202) #000 rgb(40, 156, 202);
             border-radius: 6px;
             background: linear-gradient(rgb(40, 156, 202), rgb(40, 156, 202)) rgb(40, 156, 202);
             transition: 0.2s;
           } 
-          a.button24:hover { background: linear-gradient(rgb(40, 156, 202), rgb(40, 156, 202)) rgb(40, 156, 202);}
-          a.button24:active { background: linear-gradient(rgb(40, 156, 202), rgb(40, 156, 202)) rgb(40, 156, 202);}
+          a.button25:hover { background: linear-gradient(rgb(40, 156, 202), rgb(40, 156, 202)) rgb(40, 156, 202);}
+          a.button25:active { background: linear-gradient(rgb(40, 156, 202), rgb(40, 156, 202)) rgb(40, 156, 202);}
         .modalDialog > div {
             width: 350px;
             position: relative;
@@ -101,10 +119,11 @@
     </style>
    <script src="cordova.js"></script>
    <script src="force.js"></script>
-
    <script>
     var idUserForUpdate = '';
     var inputNameForUpdate = '';
+    var pictureSource;
+    var destinationType; 
     
    force.login(
         function() {
@@ -126,7 +145,7 @@
             var listItemsHtmlName = '';
             idUserForUpdate = myUserId;
             listItemsHtmlName += (user[0].Name);
-            listItemsHtml += ('<p><img class = "photo" src="https://buffollsdk-developer-edition.ap15.force.com/'+ user[0].MediumPhotoUrl +'?oauth_token=' + myUserToken +'"> </img> <a onclick = "openCamera()" href="#" class="button24">Camera</a><a onclick = "" href="#" class="button24">Save in SF</a></p>');
+            listItemsHtml += ('<p><img class = "photo" src="https://buffollsdk-developer-edition.ap15.force.com/'+ user[0].MediumPhotoUrl +'?oauth_token=' + myUserToken +'" id = "photo"> </img> <a onclick = "openCamera()" href="#" class="button24">Camera</a></p>');
             listItemsHtml += ('<li class="table-view-cell"><div class="media-body" id="FirstName"><a onclick = btnEdit(\'FirstName\') href="#openModal" id="ModalWindowClose"> Edit </a>FirstName: ' + user[0].FirstName +'</div></li>');
             listItemsHtml += ('<li class="table-view-cell"><div class="media-body" id="LastName"><a onclick = btnEdit(\'LastName\') href="#openModal" id="ModalWindowClose"> Edit </a>LastName: ' + user[0].LastName +'</div></li>');
             listItemsHtml += ('<li class="table-view-cell"><div class="media-body" id="UserName"><a onclick = btnEdit(\'UserName\') href="#openModal" id="ModalWindowClose"> Edit </a>UserName: ' + user[0].Username + '</div></li>');
@@ -138,13 +157,58 @@
     }
     function openCamera(){
         navigator.camera.getPicture(onSuccess, onFail, { quality: 50,
-            destinationType: Camera.DestinationType.DATA_URL
+            destinationType: Camera.DestinationType.FILE_URI,
+            encodingType: Camera.EncodingType.JPEG,
+            mediaType: Camera.MediaType.PICTURE,
+            allowEdit: true,
+            correctOrientation: true
         }); 
     }
-    function onSuccess(imageData) {
-        var image = document.getElementById('myImage');
-        image.src = "data:image/jpeg;base64," + imageData;
-    } 
+    function onSuccess(imageURI) {
+        var image = document.getElementById('photo');
+        image.src = imageURI;
+        getFileEntry(imageURI)
+    }
+    function getFileEntry(imgUri) {
+        window.resolveLocalFileSystemURL(imgUri, function success(fileEntry) {
+            fileEntry.file(function(file) {
+                var reader = new FileReader();
+                reader.onloadend = function(evt) {
+                    var arrayBuffer = this.result;
+                    var binaryFile = '';
+                    var u8 = new Uint8Array(arrayBuffer);
+                    var lenght = u8.byteLength;
+                    for (var i = 0; i < lenght; i++) {
+                        binaryFile += String.fromCharCode(u8[i]);
+                    }
+                    var b64encoded = window.btoa(binaryFile);
+                    var params = {
+                        path: 'services/apexrest/MobileSDK',
+                        method: 'POST',
+                        endPoint: '/',
+                        data: {
+                            stringBase: b64encoded,
+                            communityId: '0DB2v000000DxNmGAK',
+                            userId: '0052v00000gKuHgAAK'
+                        }
+                    };
+                    force.request(
+                        params,
+                        function successHandler(str) {
+                            alert('Your photo uploaded');
+                        },
+                        function errorHandler(error) {
+                            alert('errorUpdate' + JSON.stringify(error));
+                        },
+                        true,
+                        false
+                    );
+                }
+                reader.readAsArrayBuffer(file);
+            })
+        },
+        );
+    }
     function onFail(message) {
         alert('Failed because: ' + message);
     }
@@ -153,7 +217,7 @@
         var elem = document.getElementById(inputField);
         var cells = elem.getElementsByTagName('elem');
         var newName = cells[0].innerHTML;
-        newName = newName.replace(/ /g);
+        newName = newName.replace(/ /gi);
         document.getElementById("newNameText").value = newName; 
     }
     function updateData() {
@@ -192,23 +256,18 @@
     </head>
     <body>
         <header class="header-nav bar-nav">
-            <h1 class="title">Profile: <span id="userName"></span></h1>
-            <button onclick="logout()"> Logout </button>
+            <h1 class="title header-nav">Profile: <span id="userName"></span></h1>
+            <a class="button25" onclick="logout()"> Logout </a>
         </header>
         <div id="user" class="table-view ">
             <!-- Placeholder to add informations -->
         </div> 
-        <!-- <form  action = "server.cgi"  method = "post"  enctype = "multipart / form-data" > 
-        <input  type = "file"  name = "image"  accept = "image / *"  capture = "user" > 
-        <input  type = "submit"  value = "Загрузить" > 
-      </form > -->
-
         <div id="openModal" class="modalDialog">
             <div>
                 <a href="#close" title="Close" class="close">X</a>
                 <h2>Edit Box</h2>
                 <input type="text" id="newNameText"/>
-                <a href="#ModalWindowClose" onclick="updateData()">Update</a>
+                <a href="#ModalWindowClose" onclick="updateData()">Ok</a>
             </div>
         </div>
     </body>

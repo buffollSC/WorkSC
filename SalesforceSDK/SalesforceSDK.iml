@@ -155,5 +155,10 @@
     <orderEntry type="library" name="Gradle: androidx.lifecycle:lifecycle-runtime:2.0.0@aar" level="project" />
     <orderEntry type="module" module-name="SalesforceAnalytics" />
     <orderEntry type="module" module-name="SalesforceAnalytics" />
+    <orderEntry type="module" module-name="SalesforceAnalytics" />
+    <orderEntry type="module" module-name="SalesforceAnalytics" />
+    <orderEntry type="module" module-name="SalesforceAnalytics" />
+    <orderEntry type="module" module-name="SalesforceAnalytics" />
+    <orderEntry type="module" module-name="SalesforceAnalytics" />
   </component>
 </module>
